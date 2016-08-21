@@ -7,14 +7,19 @@ var Controller = (function () {
         this.name = proto.name.replace('Controller', '').toLowerCase();
         this.router = express_1.Router();
         var routes = Reflect.getMetadata("controller:routes", this);
-        if (routes) {
-            routes.forEach(function (route) {
-                var method = _this.router[route.method];
-                method.call(_this.router, '/' + route.route, function (req, res) {
-                    return route.handler.apply(_this, [req, res]);
+        if (!routes) {
+            return;
+        }
+        routes.forEach(function (route) {
+            var method = _this.router[route.method];
+            var path = '/' + route.route;
+            method.call(_this.router, path, function (req, res, next) {
+                return route.handler.apply(_this, [req, res])
+                    .catch(function (err) {
+                    next(err);
                 });
             });
-        }
+        });
     }
     Object.defineProperty(Controller.prototype, "Router", {
         get: function () {
