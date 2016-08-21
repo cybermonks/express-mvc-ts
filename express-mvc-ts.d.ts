@@ -1,4 +1,3 @@
-/// <reference path="../express/express.d.ts" />
 declare module 'express-mvc-ts' {
     import { Express, Router, Request, Response } from 'express';
     interface RouteMetadata {
@@ -8,17 +7,8 @@ declare module 'express-mvc-ts' {
     }
     class Controller {
         protected router: Router;
-        protected request: Request;
-        protected response: Response;
         protected name: string;
         constructor();
-        protected view(): Promise<any>;
-        protected view(viewName: string): Promise<any>;
-        protected view(modelData: Object): Promise<any>;
-        protected view(viewName: string, modelData: Object): Promise<any>;
-        protected json(data: any): Promise<any>;
-        protected redirect(url: string): Promise<any>;
-        protected defer(): Promise<any>;
         Router: Router;
         Name: string;
     }

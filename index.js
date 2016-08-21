@@ -11,7 +11,10 @@ var Controller = (function () {
             routes.forEach(function (route) {
                 var method = _this.router[route.method];
                 method.call(_this.router, '/' + route.route, function (req, res) {
-                    return route.handler.apply(_this, [req, res]);
+                    return route.handler.apply(_this, [req, res])
+                        .catch(function (err) {
+                        res.status(500).end(err.toString());
+                    });
                 });
             });
         }

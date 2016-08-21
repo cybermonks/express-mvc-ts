@@ -20,6 +20,9 @@ export class Controller {
                 let method: Function = (<any>this.router)[route.method];
                 method.call(this.router, '/' + route.route, (req: Request, res: Response) => {
                     return route.handler.apply(this, [req, res])
+                    .catch((err : Error) => {
+                        res.status(500).end(err.toString())
+                    })
                 });
             });
         }
