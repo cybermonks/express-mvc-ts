@@ -8,9 +8,6 @@ import { RouteMetadata } from './annotations';
 export class Controller {
 
     protected router: Router;
-    protected request: Request;
-    protected response: Response;
-
     protected name: string;
 
     public constructor() {
@@ -22,13 +19,7 @@ export class Controller {
             routes.forEach(route => {
                 let method: Function = (<any>this.router)[route.method];
                 method.call(this.router, '/' + route.route, (req: Request, res: Response) => {
-                    this.request = req;
-                    this.response = res;
-                    return route.handler.call(this)
-                        .then(() => {
-                            this.request = null;
-                            this.response = null;
-                        })
+                    return route.handler.apply(this, [req, res])
                 });
             });
         }
