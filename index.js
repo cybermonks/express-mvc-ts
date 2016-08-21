@@ -1,3 +1,4 @@
+"use strict";
 var express_1 = require('express');
 var Controller = (function () {
     function Controller() {
@@ -12,59 +13,15 @@ var Controller = (function () {
                 method.call(_this.router, '/' + route.route, function (req, res) {
                     _this.request = req;
                     _this.response = res;
-                    var resultPromise = route.handler.call(_this);
-                    _this.request = null;
-                    _this.response = null;
-                    if (resultPromise && typeof resultPromise.then === 'function') {
-                        resultPromise.then(function (result) { return _this.handleResult(res, result); });
-                    }
+                    return route.handler.call(_this)
+                        .then(function () {
+                        _this.request = null;
+                        _this.response = null;
+                    });
                 });
             });
         }
     }
-    Controller.prototype.handleResult = function (res, result) {
-        switch (result.type) {
-            case 'json':
-                res.json(result.data);
-                break;
-            case 'view':
-                res.render(result.name, result.data);
-                break;
-            case 'redirect':
-                res.redirect(result.data);
-                break;
-            case 'text':
-                res.end(result.data);
-                break;
-            default:
-                res.end();
-                break;
-        }
-    };
-    Controller.prototype.view = function (viewName, modelData) {
-        if (typeof viewName === 'object') {
-            modelData = viewName;
-            viewName = undefined;
-        }
-        if (viewName === undefined) {
-            viewName = 'index';
-        }
-        return Promise.resolve({ type: 'view', name: this.name + '/' + viewName, data: modelData });
-    };
-    Controller.prototype.redirect = function (url) {
-        return Promise.resolve({ type: 'redirect', data: url });
-    };
-    Controller.prototype.defer = function () {
-        var _this = this;
-        var promise = new Promise(function (resolve) {
-            promise.json = _this.json;
-            promise.view = _this.view;
-        });
-        return promise;
-    };
-    Controller.prototype.json = function (data) {
-        return Promise.resolve({ type: 'json', data: data });
-    };
     Object.defineProperty(Controller.prototype, "Router", {
         get: function () {
             return this.router;
@@ -80,9 +37,10 @@ var Controller = (function () {
         configurable: true
     });
     return Controller;
-})();
+}());
 exports.Controller = Controller;
 
+"use strict";
 function addRouteMetadata(target, method, route, handler) {
     var existingData = Reflect.getMetadata("controller:routes", target);
     if (existingData === undefined) {
@@ -165,6 +123,7 @@ function Route(route) {
 }
 exports.Route = Route;
 
+"use strict";
 function Inject(target) {
     if (Reflect.hasMetadata('design:paramtypes', target)) {
         var types = Reflect.getMetadata('design:paramtypes', target).map(function (type) { return Reflect.hasMetadata('mvc:serviceType', type) ? type : null; });
@@ -188,6 +147,7 @@ function TransientService(target) {
 }
 exports.TransientService = TransientService;
 
+"use strict";
 var fs = require('fs');
 var path = require('path');
 require('reflect-metadata');
@@ -231,7 +191,7 @@ var DependencyManager = (function () {
         return new (Function.prototype.bind.apply(ctor, params));
     };
     return DependencyManager;
-})();
+}());
 exports.DependencyManager = DependencyManager;
 exports.dm = new DependencyManager();
 function setup(app, options) {
@@ -240,10 +200,10 @@ function setup(app, options) {
         options.controllerDir = path.join(process.cwd(), 'controllers');
     }
     var files = fs.readdirSync(options.controllerDir);
-    var re = /([A-Za-z0-9]+)Controller\.js$/;
+    var re = /([A-Za-z0-9]+)Controller\.ts$/;
     return files.filter(function (file) { return re.test(file); }).map(function (file) {
         var module = require(path.join(options.controllerDir, file));
-        var controllerClass = module[file.replace('.js', '')];
+        var controllerClass = module[file.replace('.ts', '')];
         var route = Reflect.getMetadata("controller:routePrefix", controllerClass);
         var controller;
         controller = exports.dm.getInstance(controllerClass);
