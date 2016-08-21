@@ -64,10 +64,10 @@ export function setup(app: Express, options: SetupOptions = {}): ControllerInfo[
     }
     let files = fs.readdirSync(options.controllerDir);
 
-    var re = /([A-Za-z0-9]+)Controller\.js$/;
+    var re = /([A-Za-z0-9]+)Controller\.ts$/;
     return files.filter(file => re.test(file)).map(file => {
         let module = require(path.join(options.controllerDir, file));
-        let controllerClass: typeof Controller = module[file.replace('.js', '')];
+        let controllerClass: typeof Controller = module[file.replace('.ts', '')];
         let route: string = Reflect.getMetadata("controller:routePrefix", controllerClass);
         let controller: Controller;
         controller = dm.getInstance(controllerClass);
